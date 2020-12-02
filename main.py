@@ -1,8 +1,9 @@
 
-from apps.detection import onset_detection
+from apps.detection import HFC_onset_detection
 from apps.mapping import onset_mapping
 from apps.correction import onset_correction
 from apps.link_audio import link_onsets
+from apps.tests import onset_detection_test
 
 from utils.utils import LoadData
 
@@ -25,7 +26,7 @@ FEATUES = {
 PROJECT = PROJECTS[0]
 FEATURES_NAMES = ['periodicity', 'energy']
 SHOW_FIGS = True
-WIN_LENGTH = 1024
+WIN_LENGTH = 512
 
 # Do not touch
 DATA_PATH = './data'
@@ -40,7 +41,7 @@ def main(project=PROJECT, data_path=FULL_DATA_PATH,
 
     # Say hello
     print()
-    print('*'*10+'Time vocal alignment!'+'*'*10)
+    print('*'*10+' Time vocal alignment! '+'*'*10)
 
     print('\nFeatures:',
           [i for i in features])
@@ -52,12 +53,15 @@ def main(project=PROJECT, data_path=FULL_DATA_PATH,
     data = LoadData(data_path, project)
 
     # Step 1: Onset detection of syllables
-    data['main_voice']['onsets'] = onset_detection(
+    data['main_voice']['onsets'] = HFC_onset_detection(
         data['main_voice']['data'], win_len=win_len
     )
-    # data['following_voice']['onsets'] = onset_detection(
+    # data['following_voice']['onsets'] = HFC_onset_detection(
     #     data['following_voice']['data']
     # )
+
+    # Here's a test for the onset detection algorithm
+    # onset_detection_test(data)
 
 
 if __name__ == "__main__":

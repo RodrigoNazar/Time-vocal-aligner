@@ -1,10 +1,9 @@
-opencv-python
 matplotlib
 pandas
 scipy-stack
 scikit-image
 pybalu
 seaborn
-python_speech_features
+librosa
 pylint
 autopep8

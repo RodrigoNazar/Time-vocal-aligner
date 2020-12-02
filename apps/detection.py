@@ -2,6 +2,58 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from scipy.spatial import ConvexHull
+from librosa.onset import onset_detect
+from scipy.signal import stft
+
+
+def HFC_onset_detection(data, win_len=1024, debug=False):
+    '''
+    From:
+    http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.332.989&rep=rep1&type=pdf
+    '''
+    if len(data) == 3:
+        sr, data, _ = data
+    else:
+        sr = 44100
+
+    frec, tiempo, X = stft(data[:, 0], fs=sr, window='hann', nperseg=1024,
+                           noverlap=512)
+
+    if debug:
+        plt.pcolormesh(tiempo, frec, np.abs(X), vmin=0,
+                       vmax=2 * np.sqrt(2), shading='gouraud')
+        plt.title('STFT Magnitude')
+        plt.ylabel('Frequency [Hz]')
+        plt.xlabel('Time [sec]')
+        plt.show()
+
+    E_n = np.multiply(np.power(X, 2).T, np.abs(frec)).T
+    E_n = np.sum(E_n, axis=0)
+
+    print(E_n.shape)
+
+    # for x in X.T:
+    #     print(x.shape)
+
+    plt.figure()
+    plt.plot(E_n)
+    plt.show()
+
+    print('frec\t', frec.shape)
+    print('tiempo\t', tiempo.shape)
+    print('X\t', X.shape)
+
+
+def librosa_onset_detect(data, win_len=1024):
+    if len(data) == 3:
+        sr, data, _ = data
+    else:
+        sr = 44100
+
+    return onset_detect(data.astype(np.float32)[
+        :, 0], sr=sr, units='samples')
+
 
 def onset_detection(data, win_len=1024):
 
@@ -10,6 +62,20 @@ def onset_detection(data, win_len=1024):
     # Features
     _periodicity = periodicity_by_gammas(gammas)
     _relevant_energy = relevant_energy_by_gammas(gammas)
+
+    plt.figure()
+    # plt.plot(_periodicity)
+    plt.plot(_relevant_energy)
+    plt.show()
+
+    periodicity_segmentation(_periodicity)
+
+
+def periodicity_segmentation(per):
+    per = np.array(per)
+
+    convex_hull = ConvexHull(per)
+    print(convex_hull)
 
 
 def get_gammas(data, win_len=1024):
@@ -48,7 +114,7 @@ def periodicity_by_gammas(gammas):
     # Normalization of the gammas
     P_h = []
     for indx, gamma in enumerate(gammas):
-        p_h = (gamma / n_chunks - indx) / (gammas[0] / n_chunks)
+        p_h = (gamma / len(gammas) - indx) / (gammas[0] / len(gammas))
         P_h.append(p_h)
 
     return P_h
